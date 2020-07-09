@@ -1,5 +1,5 @@
 const allNotes = document.querySelector('#allNotes');
-
+let converter = new showdown.Converter();
 /****************************** INITIALIZE PAGE **********************************/
 // On page load, get notes from local storage
 const jsonNoteArr = localStorage.getItem('Notes');
@@ -40,7 +40,7 @@ function noteTemplate() {
             <button class='save' id='saveBtn' type='button' disabled='true'>Saved</button>
             <button class='delete' id='deleteBtn' type='button'>Delete</button>
         </div>
-        <p id='inputNote' class='inputNote'></p>
+        <div id='inputNote' class='inputNote'></div>
     `;
     newNoteDiv.innerHTML = noteTemplate;
     return newNoteDiv;
@@ -53,20 +53,21 @@ function prepareNote(i) {
     const noteDiv = noteTemplate();
 
     // Select the paragraph within the note div
-    let newP = noteDiv.querySelector('p');
+    let newDiv = noteDiv.querySelector('#inputNote');
 
     // Set the inner text of the paragraph to the existing note
     if (noteArr[i] !== undefined) {
-        newP.innerText = noteArr[i];
+        newDiv.innerHTML = converter.makeHtml(noteArr[i]);
     } else {
         // Push a blank note to the note DS and assign the blank note to the inner text
         noteArr.push('');
-        newP.innerText = noteArr[i];
+        newDiv.innerHTML = converter.makeHtml(noteArr[i]);
+
     }
 
     // Give the div and the paragraph an ID of the index where it resides in the DS
     noteDiv.id = i;
-    newP.id = i;
+    // newDiv.id = i;
 
     // Return the note div
     return noteDiv;
@@ -95,7 +96,7 @@ function edit(target) {
     draft.id = target.parentNode.id;
 
     // Set the text of the text area to the selected notes text
-    draft.innerText = target.innerText;
+    draft.value = converter.makeMarkdown(target.innerHTML);
 
     // Replace the p element with the text area element
     target.parentNode.replaceChild(draft, target);
@@ -108,12 +109,12 @@ function edit(target) {
 document.querySelector('#addBtn').addEventListener('click', () => {
     const newNote = prepareNote(noteArr.length);
     allNotes.prepend(newNote);
-    edit(newNote.querySelector('p'));
+    edit(newNote.querySelector('#inputNote'));
 });
 
 // Event listener to edit a note
 document.getElementById('allNotes').addEventListener('click', function(e) {
-    if (e.target && e.target.matches('p.inputNote')) {
+    if (e.target && e.target.matches('div.inputNote')) {
         // Replace the paragraph with a input text area
         edit(e.target);
     }
